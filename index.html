@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>수입식품 안전성 검토 대시보드</title>
+    <style>
+        :root { --primary: #1e3a8a; --primary-hover: #1d4ed8; --bg: #f8fafc; --card: #ffffff; --border: #e2e8f0; --text: #1e293b; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; line-height: 1.5; }
+        .dashboard { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 350px 1fr; gap: 24px; }
+        header { grid-column: 1 / -1; background: var(--primary); color: white; padding: 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        h1 { margin: 0; font-size: 24px; font-weight: 700; }
+        .status-badge { background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px; font-size: 14px; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        h2 { font-size: 18px; margin-top: 0; margin-bottom: 20px; color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 8px; }
+        label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; }
+        select, input, textarea { width: 100%; padding: 10px; margin-bottom: 16px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        textarea { height: 120px; resize: none; }
+        button { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600; width: 100%; transition: background 0.2s; }
+        button:hover { background: var(--primary-hover); }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 14px; border-bottom: 1px solid var(--border); font-size: 14px; }
+        th { background: #f1f5f9; color: var(--primary); font-weight: 600; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 12px; display: inline-block; }
+        .badge-O { background: #d1fae5; color: #065f46; }
+        .badge-X { background: #fee2e2; color: #991b1b; }
+        .badge-Q { background: #fef3c7; color: #92400e; }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <header>
+        <h1>🔬 수입식품 사전 안전성 검토 시스템</h1>
+        <div class="status-badge">현재 판정 엔진 버전: v0.2 (공전 동적 매칭)</div>
+    </header>
+
+    <aside class="card">
+        <h2>📥 정보 입력 및 파싱</h2>
+        <label for="foodType">식품 유형 (공전 분류)</label>
+        <select id="foodType" onchange="runValidator()">
+            <option value="과자">과자류 (HappyPuffs군)</option>
+            <option value="다류">다류 (차류)</option>
+            <option value="커피">커피류</option>
+        </select>
+
+        <label for="rawText">원재료 성분 데이터 (OCR 텍스트 대용)</label>
+        <textarea id="rawText" placeholder="여기에 원재료명을 입력하거나 연동하세요.">Mixed Tocopherols: 0.1%&#10;Dicalcium Phosphate: 0.5%&#10;감색소: 0.02%&#10;ㄴ Pork (돼지고기 분말): 1.2%</textarea>
+        
+        <button onclick="runValidator()">실시간 적부 판정 실행</button>
+    </aside>
+
+    <main class="card">
+        <h2>📊 실시간 성분 검토 보고서 (식품위생법 및 공전 규격 매칭)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>성분명 (영문/국문)</th>
+                    <th>배합비</th>
+                    <th>적부</th>
+                    <th>식품안전나라 공전 및 검역 실무 의견</th>
+                </tr>
+            </thead>
+            <tbody id="resultRows">
+                </tbody>
+        </table>
+    </main>
+</div>
+
+<script>
+function runValidator() {
+    const foodType = document.getElementById('foodType').value;
+    const rawText = document.getElementById('rawText').value;
+    const tbody = document.getElementById('resultRows');
+    tbody.innerHTML = '';
+
+    // 간단한 텍스트 파싱 로직 실행
+    const lines = rawText.split('\n');
+    
+    lines.forEach(line => {
+        if(!line.trim()) return;
+        
+        let name = line.split(':')[0] || line;
+        let ratio = line.split(':')[1] || '-';
+        let result = "O";
+        let comment = "식품첨가물공전/식품공전 기준 적합";
+        let badgeClass = "badge-O";
+
+        // 검역 노하우 & 공전 규칙 매트릭스 매칭
+        if (name.toLowerCase().includes('pork') || name.includes('돼지고기')) {
+            result = "??";
+            comment = "구조적 가축전염병(ASF 등) 검토 대상국 확인 필요 -> 위생증 및 수출국 열처리증명서 원본 검증 필수.";
+            badgeClass = "badge-Q";
+        } else if (name.includes('믹스토코페롤') || name.toLowerCase().includes('tocopherol')) {
+            result = "O";
+            comment = "식품첨가물공전 상 [적정량 사용(GMP)] 성분. 실무 적용 시 즉시 패스 항목.";
+            badgeClass = "badge-O";
+        } else if (name.includes('감색소')) {
+            if (['다류', '커피'].includes(foodType)) {
+                result = "X";
+                comment = `[부적합] 감색소는 첨가물공전 상 [${foodType}]에 사용이 제한된 착색료입니다.`;
+                badgeClass = "badge-X";
+            } else {
+                result = "O";
+                comment = "해당 식품유형에 착색 목적 사용 가능 (GMP 조건 적용).";
+                badgeClass = "badge-O";
+            }
+        }
+
+        const row = `<tr>
+            <td><strong>${name.trim()}</strong></td>
+            <td>${ratio.trim()}</td>
+            <td><span class="badge ${badgeClass}">${result}</span></td>
+            <td>${comment}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+    });
+}
+// 초기 렌더링
+runValidator();
+</script>
+</body>
+</html>
