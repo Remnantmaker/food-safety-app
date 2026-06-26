@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>수입식품 안전성 검토 대시보드</title>
+    <title>수입식품 컨설팅 시스템</title>
     <style>
         :root { --primary: #1e3a8a; --primary-hover: #1d4ed8; --bg: #f8fafc; --card: #ffffff; --border: #e2e8f0; --text: #1e293b; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; line-height: 1.5; }
@@ -31,7 +31,7 @@
 
 <div class="dashboard">
     <header>
-        <h1>🔬 수입식품 사전 안전성 검토 시스템</h1>
+        <h1>🔬 수입식품 컨설팅 시스템</h1>
         <div class="status-badge">현재 판정 엔진 버전: v0.2 (공전 동적 매칭)</div>
     </header>
 
@@ -39,7 +39,7 @@
         <h2>📥 정보 입력 및 파싱</h2>
         <label for="foodType">식품 유형 (공전 분류)</label>
         <select id="foodType" onchange="runValidator()">
-            <option value="과자">과자류 (HappyPuffs군)</option>
+            <option value="과자">과자류</option>
             <option value="다류">다류 (차류)</option>
             <option value="커피">커피류</option>
         </select>
